@@ -11,7 +11,7 @@ import (
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
-	"github.com/mdlayher/raw"
+        raw "github.com/mdlayher/packet"
 )
 
 const responseTimeout = time.Second * 5
@@ -187,7 +187,7 @@ func (client *Client) unbound() {
 }
 
 func (client *Client) withConnection(f func() error) error {
-	conn, err := raw.ListenPacket(client.Iface, uint16(layers.EthernetTypeIPv4), nil)
+        conn, err := raw.Listen(client.Iface, raw.Raw, int(layers.EthernetTypeIPv4), nil)
 	if err != nil {
 		return err
 	}
