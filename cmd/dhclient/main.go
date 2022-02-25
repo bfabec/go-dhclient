@@ -31,16 +31,35 @@ func main() {
 	log.SetFlags(log.Ltime | log.Lshortfile)
 	flag.Parse()
 
-	if flag.NArg() != 1 {
-		flag.Usage()
-		os.Exit(1)
-	}
+	var iface *net.Interface
+        var err error
+	if flag.NArg() == 0 {
+		ifaces, err := net.Interfaces()
+		if err != nil {
+			fmt.Printf("unable to find interfaces %v\n", err)
+			os.Exit(1)
+		} else if len(ifaces) == 0 {
+			flag.Usage()
+                	os.Exit(1)
+		}
 
-	ifname := flag.Arg(0)
-	iface, err := net.InterfaceByName(ifname)
-	if err != nil {
-		fmt.Printf("unable to find interface %s: %s\n", ifname, err)
-		os.Exit(1)
+		for _, ifacePos := range ifaces {
+			if ifacePos.Name != "lo" {
+				iface = &ifacePos
+				fmt.Printf("using first interface %v\n", ifacePos.Name)
+				break
+			}
+		}
+		if iface == nil {
+		        flag.Usage()
+                        os.Exit(1)
+		}
+        } else {
+		ifname := flag.Arg(0)
+		if iface, err = net.InterfaceByName(ifname); err != nil {
+			fmt.Printf("unable to find interface %s: %s\n", ifname, err)
+			os.Exit(1)
+		}
 	}
 
 	client := dhclient.Client{
